@@ -6,7 +6,8 @@
     "prettier/prettier": ["error"],
     "import/extensions": "off",
     "import/prefer-default-export": 0,
-    "@typescript-eslint/ban-ts-comment": 0
+    "@typescript-eslint/ban-ts-comment": 0,
+    "max-len": [2, { "code": 130, "ignoreUrls": true }]
   },
   "settings": {
     "import/resolver": {
