@@ -1,4 +1,5 @@
 import { DocumentDefinition, FilterQuery, LeanDocument, Query, UpdateWriteOpResult } from 'mongoose'
+import { get } from 'lodash'
 import { Session, SessionDocument } from '../models/session.model'
 import { UserDocument } from '../models/user.model'
 import { signToken, decodeToken } from '../utils'
@@ -33,8 +34,7 @@ export const createRefreshToken = async (
 export const reIssueAccessToken = async (refreshToken: string): Promise<false | string> => {
   const { decoded } = decodeToken(refreshToken)
 
-  // eslint-disable-next-line no-underscore-dangle
-  if (!decoded || !decoded._id) return false
+  if (!decoded || !get(decoded, '_id')) return false
 
   const { _id }: FilterQuery<SessionDocument['_id']> = decoded
 
@@ -42,10 +42,9 @@ export const reIssueAccessToken = async (refreshToken: string): Promise<false | 
 
   if (!session || !session?.isValid) return false
 
-  const user: UserDocument | null = await findUser({ _id: session.user })
+  const user: UserDocument | null = await findUser({ _id: get(session, 'user') })
 
   if (!user) return false
 
-  // eslint-disable-next-line no-underscore-dangle
-  return createAccessToken({ user, session: session._id })
+  return createAccessToken({ user, session: get(session, '_id') })
 }

@@ -22,12 +22,16 @@ app.use('/api/v1', router)
 
 // @ts-ignore
 app.use('*', (req: Request, res: Response) =>
-  res.send(`Virtual Digital Banking - v.0.1.0 ${`${new Date().toDateString()} - ${new Date().toLocaleTimeString()}`}`)
+  res.send(
+    `Virtual Digital Banking - v.0.1.0 ${`${new Date().toDateString()} - ${new Date().toLocaleTimeString()}`}`
+  )
 )
 
 app.use(errorHandler)
 
-const PORT: number = (process.env.PORT as unknown as number) ?? (process.env.SERVER_PORT as unknown as number)
+const PORT: number =
+  (process.env.PORT as unknown as number) ??
+  (process.env.SERVER_PORT as unknown as number)
 
 connectDB()
   .then(() => {
