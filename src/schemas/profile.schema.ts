@@ -1,6 +1,6 @@
 import { object, string, date } from 'yup'
 
-const createProfileSchema = object({
+export const createProfileSchema = object({
   body: object({
     firstName: string().required('First name is required'),
     lastName: string().required('First name is required'),
@@ -15,7 +15,7 @@ const createProfileSchema = object({
   }),
 })
 
-const updateProfileSchema = object({
+export const updateProfileSchema = object({
   body: object({
     firstName: string(),
     lastName: string(),
@@ -29,5 +29,3 @@ const updateProfileSchema = object({
     user: string().uuid('Must be a valid User ID'),
   }),
 })
-
-export { createProfileSchema, updateProfileSchema }
