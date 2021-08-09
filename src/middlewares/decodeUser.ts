@@ -6,18 +6,22 @@ import { reIssueAccessToken } from '../services/session.service'
 const decodeUser = async (req: Request, res: Response, next: NextFunction): Promise<NextFunction | Response | void> => {
   const requestAccessToken = get(req, 'headers.authorization', '').replace(/^Bearer\s/, '') as string
 
-  if (!requestAccessToken) return next()
+  let expiredToken
 
-  const { decoded, expired } = decodeToken(requestAccessToken)
+  if (requestAccessToken) {
+    const { decoded, expired } = decodeToken(requestAccessToken)
 
-  if (decoded) {
-    set(req, 'user', decoded)
-    return next()
+    expiredToken = expired
+
+    if (decoded) {
+      set(req, 'user', decoded)
+      return next()
+    }
   }
 
   const requestRefreshToken = get(req, "headers['x-refresh-token']") as string
 
-  if (expired && requestRefreshToken) {
+  if (expiredToken && requestRefreshToken) {
     const newAccessToken = await reIssueAccessToken(requestRefreshToken)
 
     if (newAccessToken) {
@@ -31,8 +35,6 @@ const decodeUser = async (req: Request, res: Response, next: NextFunction): Prom
       set(req, 'user', decoded)
       return next()
     }
-
-    return next()
   }
 
   return next()

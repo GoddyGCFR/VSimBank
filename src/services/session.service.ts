@@ -1,4 +1,4 @@
-import { DocumentDefinition, FilterQuery, LeanDocument, Query, UpdateWriteOpResult } from 'mongoose'
+import { DocumentDefinition, FilterQuery, LeanDocument, Query, UpdateWriteOpResult, UpdateQuery } from 'mongoose'
 import { get } from 'lodash'
 import { Session, SessionDocument } from '../models/session.model'
 import { UserDocument } from '../models/user.model'
@@ -11,13 +11,19 @@ export const createSession = async ({
 }: {
   user: DocumentDefinition<SessionDocument['user']>
   userAgent: DocumentDefinition<SessionDocument['userAgent']>
-}): Promise<SessionDocument> => Session.create({ user, userAgent })
+}): Promise<LeanDocument<SessionDocument>> => {
+  const session = await Session.create({ user, userAgent })
+
+  return session.toJSON()
+}
 
 export const findSession = async (input: FilterQuery<SessionDocument>): Promise<SessionDocument | null> =>
   Session.findOne(input).lean()
 
-export const updateSession = async (session: SessionDocument['_id']): Promise<Query<UpdateWriteOpResult, SessionDocument>> =>
-  Session.updateOne({ _id: session }, { isValid: false })
+export const updateSession = async (
+  filter: FilterQuery<SessionDocument>,
+  update: UpdateQuery<SessionDocument>
+): Promise<Query<UpdateWriteOpResult, SessionDocument>> => Session.updateOne(filter, update)
 
 export const createAccessToken = async ({
   user,
@@ -34,15 +40,15 @@ export const createRefreshToken = async (
 export const reIssueAccessToken = async (refreshToken: string): Promise<false | string> => {
   const { decoded } = decodeToken(refreshToken)
 
-  if (!decoded || !get(decoded, '_id')) return false
+  const decodedSessionId = get(decoded, '_id') as SessionDocument['_id']
 
-  const { _id }: FilterQuery<SessionDocument['_id']> = decoded
+  if (!decoded || !decodedSessionId) return false
 
-  const session: SessionDocument | null = await findSession({ _id })
+  const session = await findSession({ _id: decodedSessionId })
 
   if (!session || !session?.isValid) return false
 
-  const user: UserDocument | null = await findUser({ _id: get(session, 'user') })
+  const user = await findUser({ _id: get(session, 'user') })
 
   if (!user) return false
 
